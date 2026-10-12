@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JRS DRIVER'S | Kernel Driver Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Fira+Code:wght@400;600&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Hind Siliguri', sans-serif;
+            background-color: #050b08;
+            color: #00ff88;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* অ্যানিমেটেড ড্রাইভার ব্যাকগ্রাউন্ড ক্যানভাস */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* কার্ডের প্রধান কনটেইনার */
+        .container {
+            position: relative;
+            z-index: 2;
+            background: rgba(10, 20, 15, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 0 35px rgba(0, 255, 136, 0.15),
+                        inset 0 0 15px rgba(0, 255, 136, 0.05);
+            margin: 20px 0;
+            animation: floatCard 6s ease-in-out infinite;
+        }
+
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* ড্রাইভার আইকন */
+        .app-icon {
+            width: 95px;
+            height: 95px;
+            background: #0d1a14;
+            border: 2px solid #00ff88;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            color: #00ff88;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+            100% { box-shadow: 0 0 30px rgba(0, 255, 136, 0.7); }
+        }
+
+        .app-title {
+            font-size: 30px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .app-subtitle {
+            font-size: 13px;
+            color: #00ff88;
+            font-family: 'Fira Code', monospace;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .app-desc {
+            font-size: 14px;
+            color: #a3b8b0;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        /* টার্মিনাল ড্যাশবোর্ড স্টাইল */
+        .status-box {
+            background: #030805;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-around;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #00ff88;
+        }
+
+        /* ডাউনলোড বাটন */
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #00ff88, #009955);
+            color: #030805;
+            text-decoration: none;
+            padding: 16px 35px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            width: 100%;
+            margin-bottom: 25px;
+            letter-spacing: 0.5px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.7);
+            background: linear-gradient(135deg, #33ff99, #00cc70);
+        }
+
+        .download-btn i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* ডেভেলপার সেকশন */
+        .developer-section {
+            border-top: 1px solid rgba(0, 255, 136, 0.15);
+            padding-top: 20px;
+        }
+
+        .dev-text {
+            font-size: 13px;
+            color: #88a398;
+            margin-bottom: 15px;
+        }
+
+        .links-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dev-link {
+            text-decoration: none;
+            color: #d0e6dd;
+            background: rgba(0, 255, 136, 0.05);
+            padding: 12px 15px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0, 255, 136, 0.15);
+        }
+
+        .dev-link:hover {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: #00ff88;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+
+        .dev-link i {
+            margin-right: 10px;
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- অ্যানিমেটেড ব্যাকগ্রাউন্ড -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <!-- অ্যাপ আইকন -->
+        <div class="app-icon">
+            <i class="fa-solid fa-microchip"></i>
+        </div>
+
+        <!-- শিরোনাম ও বিবরণ -->
+        <h1 class="app-title">JRS DRIVER'S</h1>
+        <div class="app-subtitle">Kernel Driver Manager</div>
+        <p class="app-desc">অ্যান্ড্রয়েড ডিভাইসের জন্য একটি উন্নত কার্নেল ও ড্রাইভ ব্যবস্থাপনা অ্যাপ।</p>
+
+        <!-- স্ট্যাটাস টার্মিনাল -->
+        <div class="status-box">
+            <div class="status-item">
+                <span class="status-dot"></span>
+                <span>ROOT: AUTHORIZED</span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot"></span>
+                <span>DRIVER: LOADED</span>
+            </div>
+        </div>
+
+        <!-- ডাউনলোড বাটন -->
+        <a href="https://github.com/jakariya41jr/JRS-Overtime-BD/raw/refs/heads/main/JRS%20Overtime%20BD.apk" class="download-btn" download>
+            <i class="fa-solid fa-download"></i> Download App
+        </a>
+
+        <!-- ডেভেলপার তথ্য ও পোর্টফোলিও লিংক -->
+        <div class="developer-section">
+            <p class="dev-text">Developed & Maintained by <strong style="color: #00ff88;">Md Jakaria Hasan</strong></p>
+            
+            <div class="links-wrapper">
+                <a href="https://jakariya41jr.xyz/" target="_blank" class="dev-link">
+                    <i class="fa-solid fa-globe"></i> Visit My Portfolio
+                </a>
+                <a href="https://jakariya41jr.github.io/Personal-Project-Showcase/" target="_blank" class="dev-link">
+                    <i class="fa-solid fa-laptop-code"></i> View Project Showcase
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- পার্টিকেল অ্যানিমেশন স্ক্রিপ্ট -->
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const particles = [];
+        const particleCount = 45;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.8;
+                this.speedY = (Math.random() - 0.5) * 0.8;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = `rgba(0, 255, 136, ${this.opacity})`;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00ff88';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function connectParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 120) {
+                        ctx.strokeStyle = `rgba(0, 255, 136, ${0.15 - distance / 800})`;
+                        ctx.lineWidth = 0.8;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            connectParticles();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
